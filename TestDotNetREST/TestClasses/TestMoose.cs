@@ -8,17 +8,19 @@ namespace TestDotNetREST.TestClasses
 {
     public class TestMoose : TestAnimal
     {
-        public override string Name { get { return "Moose"; } }
-        public int HornLength { get; set; }
-        public override double Cost { get { return 0.00; } }
-        public override bool IsDomesticated
+        public TestMoose()
+            : base()
         {
-            get { return false; }
-        }
-        public override void Print()
-        {
-            base.Print();
-            Console.WriteLine("Horn Length: " + HornLength.ToString());
+            Name = "Moose";
+            Age = 18;
+            Cost = 100000000.00m;
+            IsDomesticated = false;
+            NumberOfFeet = 4;
+            NumberOfHairs = 7234567890123;
+            SomeByteValue = 0xDE;
+            FloatingPointNumber = 18.341f;
+            DoublePrecisionNumber = 0.125d;
+            Class = 'M';
         }
     }
 

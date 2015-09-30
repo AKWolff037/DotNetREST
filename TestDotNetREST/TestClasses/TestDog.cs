@@ -8,17 +8,18 @@ namespace TestDotNetREST.TestClasses
 {
     public class TestDog : TestAnimal
     {
-        public override string Name { get { return "Dog"; } }
-        public string Breed { get; set; }
-        public override double Cost { get { return 350.00; } }
-        public override bool IsDomesticated
+        public TestDog() : base()
         {
-            get { return true; }
-        }
-        public override void Print()
-        {
-            base.Print();
-            Console.WriteLine("Breed: " + Breed);
+            Name = "Dog";
+            Age = 7;
+            Cost = 100.00m;
+            IsDomesticated = true;
+            NumberOfFeet = 4;
+            NumberOfHairs = 1234567890123;
+            SomeByteValue = 0xab;
+            FloatingPointNumber = 3f;
+            DoublePrecisionNumber = 18d;
+            Class = 'A';
         }
     }
 }

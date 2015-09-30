@@ -8,17 +8,18 @@ namespace TestDotNetREST.TestClasses
 {
     public class TestCat : TestAnimal
     {
-        public override string Name { get { return "Cat"; } }
-        public string Color { get; set; }
-        public override double Cost { get { return 200.00; } }
-        public override bool IsDomesticated
+        public TestCat() : base()
         {
-            get { return true; }
-        }
-        public override void Print()
-        {
-            base.Print();
-            Console.WriteLine("Color: " + Color);
+            Name = "Cat";
+            Age = 8;
+            Cost = 50.00m;
+            IsDomesticated = true;
+            NumberOfFeet = 4;
+            NumberOfHairs = 54567890123;
+            SomeByteValue = 0xfb;
+            FloatingPointNumber = 18f;
+            DoublePrecisionNumber = 2678.22412d;
+            Class = 'C';
         }
     }
 }

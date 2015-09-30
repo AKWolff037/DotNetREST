@@ -9,6 +9,16 @@ using System.Threading.Tasks;
 using System.Dynamic;
 namespace DotNetREST
 {
+    /**
+     * To use, call the default constructor with the type that you wish to convert the JSON to
+     * For example, if you have a class Car, call with new RestObject<Car>(carJson);
+     * This will only support weakly typed classes, and does not support inheritence or generics very well
+     * 
+     * However, if you know the exact form of the JSON coming back, it should be easy to create a class to match
+     * 
+     * After instantiating the class, call the statically typed object by calling RestObject.ExplicitObject
+     * Or if you wish, you can call the dynamically typed RestObject.DynamicObject instead
+     */ 
     public class RESTObject<T> where T : class, new()
     {
         private ExpandoObject _dynamic;
@@ -19,22 +29,25 @@ namespace DotNetREST
 
         public RESTObject(string json)
         {
+            //Deserialize the json string into an ExpandoObject
             var jsonObject = JsonConvert.DeserializeObject<ExpandoObject>(json);
             ParseDynamic(jsonObject);
         }
         public RESTObject(RESTWebResponse response)
         {
+            //Get the JSON from a Web Response and parse it into an ExpandoObject and typed T object
             var responseStream = new System.IO.StreamReader(response.Base.GetResponseStream());
             var responseJson = Newtonsoft.Json.JsonConvert.DeserializeObject<ExpandoObject>(responseStream.ReadToEnd());
             ParseDynamic(responseJson);
         }
         private void ParseDynamic(ExpandoObject input)
         {
+            //Parse when given an ExpandoObject
             _dynamic = input;
             var dict = _dynamic as IDictionary<string, object>;
             ParseDictionary<T>(dict, out _explicit);
         }
-        public static void ParseDictionary(IDictionary<string, object> Dict, out object Target, Type explicitType)
+        protected static void ParseDictionary(IDictionary<string, object> Dict, out object Target, Type explicitType)
         {
             if (explicitType.IsArray)
             {
@@ -52,7 +65,8 @@ namespace DotNetREST
                 {
                     var val = Dict[propertyName];
                     var propertyVal = explicitType.GetProperty(propertyName);
-                    if (val is Int64)
+                    var expectedType = property.PropertyType;
+                    if (val.GetType() != propertyVal.GetType() && val is IConvertible)
                     {
                         var explicitVal = Convert.ChangeType(val, propertyVal.PropertyType);
                         propertyVal.SetValue(Target, explicitVal);
@@ -73,58 +87,43 @@ namespace DotNetREST
                         var Tlist = val as IList<T>;
                         propertyVal.SetValue(Target, Tlist);
                     }
-                    else if (val is IList<object>)
+                    else if (val is IList)
                     {
-                        var isAlreadySet = false;
-                        var aryVal = (val as IList<object>).ToArray();
-                        var propType = propertyVal.PropertyType;
-                        IList explicitList;
-                        if (propType.IsArray)
+                        Type elementType;
+                        if (expectedType.IsArray)
                         {
-                            var instanceType = propType.GetElementType();
-                            var listType = typeof(List<>);
-                            var explicitListType = listType.MakeGenericType(instanceType);
-                            explicitList = (IList)Activator.CreateInstance(explicitListType);
+                            //Array type is explicitly included with GetElementType
+                            elementType = expectedType.GetElementType();
+                        }
+                        else if (expectedType.IsGenericType)
+                        {
+                            //Get List type by inspecting generic argument
+                            elementType = expectedType.GetGenericArguments()[0];
                         }
                         else
                         {
-                            explicitList = (IList)Activator.CreateInstance(propType);
+                            //Not sure how we'd get here if we're neither an array nor generic, but we can't really do much
+                            continue;
                         }
-                        foreach (var obj in aryVal)
+                        var listType = typeof(List<>);
+                        var typedList = listType.MakeGenericType(elementType);
+                        var explicitList = (IList)Activator.CreateInstance(typedList);
+                        foreach(var element in val as IList<object>)
                         {
-                            var objType = obj.GetType();
-                            if (obj is T)
-                            {
-                                explicitList.Add(obj as T);
-                            }
-                            else if (obj is IDictionary<string, object> && propType.IsArray)
-                            {
-                                object explicitVal;
-                                Type instanceType = propType.GetElementType();
-                                ParseDictionary(obj as IDictionary<string, object>, out explicitVal, instanceType);
-                                explicitList.Add(explicitVal);
-                            }
-                            else if (obj is IDictionary<string, object>)
-                            {
-                                object explicitVal;
-                                ParseDictionary(obj as IDictionary<string, object>, out explicitVal, propType);
-                                propertyVal.SetValue(Target, explicitVal);
-                                isAlreadySet = true;
-                            }
+                            object explicitElement;
+                            ParseDictionary(element as IDictionary<string, object>, out explicitElement, elementType);
+                            explicitList.Add(explicitElement);
                         }
-                        if (!isAlreadySet)
+                        if(property.PropertyType.IsArray)
                         {
-                            if (propType.IsArray)
-                            {
-                                var instanceType = propType.GetElementType();
-                                var array = (Array)Activator.CreateInstance(propType, new object[] { explicitList.Count });
-                                explicitList.CopyTo(array, 0);
-                                propertyVal.SetValue(Target, array);
-                            }
-                            else
-                            {
-                                propertyVal.SetValue(Target, explicitList);
-                            }
+                            var arrayType = elementType.MakeArrayType();
+                            var array = (Array)Activator.CreateInstance(arrayType, new object[] { explicitList.Count });
+                            explicitList.CopyTo(array, 0);
+                            propertyVal.SetValue(Target, array);
+                        }
+                        else
+                        {
+                            propertyVal.SetValue(Target, explicitList);
                         }
                     }
                     else
@@ -134,113 +133,13 @@ namespace DotNetREST
                 }
             }
         }    
-        public static void ParseDictionary<K>(IDictionary<string, object> Dict, out K Target) where K : class, new()
+        protected static void ParseDictionary<K>(IDictionary<string, object> Dict, out K Target) where K : class, new()
         {
             Target = new K();
             var explicitType = Target.GetType();
             var outObject = new object();
             ParseDictionary(Dict, out outObject, explicitType);
             Target = outObject as K;
-        //    foreach (var property in Target.GetType().GetProperties())
-        //    {
-        //        var propertyName = property.Name;
-                
-        //        if (Dict.ContainsKey(propertyName))
-        //        {
-        //            var val = Dict[propertyName];
-        //            var propertyVal = explicitType.GetProperty(propertyName);
-        //            if (val is Int64)
-        //            {
-        //                var explicitVal = Convert.ChangeType(val, propertyVal.PropertyType);
-        //                propertyVal.SetValue(Target, explicitVal);
-        //            }
-        //            else if (val is IDictionary<string, object>)
-        //            {
-        //                K obj = new K();
-        //                ParseDictionary(val as IDictionary<string, object>, out obj);
-        //            }
-        //            else if (val is K)
-        //            {
-        //                propertyVal.SetValue(Target, val as K);
-        //            }
-        //            else if (val is T)
-        //            {
-        //                propertyVal.SetValue(Target, val as T);
-        //            }
-        //            else if (val is IList<K>)
-        //            {
-        //                var Klist = val as IList<K>;
-        //                propertyVal.SetValue(Target, Klist);
-        //            }
-        //            else if (val is IList<T>)
-        //            {
-        //                var Tlist = val as IList<T>;
-        //                propertyVal.SetValue(Target, Tlist);
-        //            }
-        //            else if (val is IList<object>)
-        //            {
-        //                var isAlreadySet = false;
-        //                var aryVal = (val as IList<object>).ToArray();
-        //                var propType = propertyVal.PropertyType;
-        //                IList explicitList;
-        //                if (propType.IsArray)
-        //                {
-        //                    var instanceType = propType.GetElementType();
-        //                    var listType = typeof(List<>);
-        //                    var explicitListType = listType.MakeGenericType(instanceType);
-        //                    explicitList = (IList)Activator.CreateInstance(explicitListType);
-        //                }
-        //                else
-        //                {
-        //                    explicitList = (IList)Activator.CreateInstance(propType);
-        //                }
-        //                foreach(var obj in aryVal)
-        //                {
-        //                    var objType = obj.GetType();
-        //                    if(obj is K)
-        //                    {
-        //                        explicitList.Add(obj as K);
-        //                    }
-        //                    else if (obj is T)
-        //                    {
-        //                        explicitList.Add(obj as T);
-        //                    }
-        //                    else if(obj is IDictionary<string, object> && propType.IsArray)
-        //                    {
-        //                        object explicitVal;
-        //                        Type instanceType = propType.GetElementType();
-        //                        ParseDictionary(obj as IDictionary<string, object>, out explicitVal, instanceType);
-        //                        explicitList.Add(explicitVal);
-        //                    }
-        //                    else if(obj is IDictionary<string, object>)
-        //                    {
-        //                        object explicitVal;
-        //                        ParseDictionary(obj as IDictionary<string, object>, out explicitVal, propType);
-        //                        propertyVal.SetValue(Target, explicitVal);
-        //                        isAlreadySet = true;
-        //                    }
-        //                }
-        //                if (!isAlreadySet)
-        //                {
-        //                    if (propType.IsArray)
-        //                    {
-        //                        var instanceType = propType.GetElementType();
-        //                        var array = (Array)Activator.CreateInstance(propType, new object[] { explicitList.Count });
-        //                        explicitList.CopyTo(array, 0);
-        //                        propertyVal.SetValue(Target, array);
-        //                    }
-        //                    else
-        //                    {
-        //                        propertyVal.SetValue(Target, explicitList);
-        //                    }
-        //                }
-        //            }
-        //            else
-        //            {
-        //                propertyVal.SetValue(Target, val);
-        //            }
-        //        }
-        //    }
         }
     }
 }
