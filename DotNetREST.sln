@@ -5,7 +5,7 @@ VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetREST", "DotNetREST\DotNetREST.csproj", "{534FF893-8A49-4674-BB6C-E3C310EF56D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestDotNetREST", "TestDotNetREST\TestDotNetREST.csproj", "{402E3602-AC96-44BA-B13C-BA134615DA2E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetRESTUnitTest", "DotNetRESTUnitTest\DotNetRESTUnitTest.csproj", "{ED75B166-872C-4CFA-A909-2D2987678454}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{534FF893-8A49-4674-BB6C-E3C310EF56D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{534FF893-8A49-4674-BB6C-E3C310EF56D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{534FF893-8A49-4674-BB6C-E3C310EF56D1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{402E3602-AC96-44BA-B13C-BA134615DA2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{402E3602-AC96-44BA-B13C-BA134615DA2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{402E3602-AC96-44BA-B13C-BA134615DA2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{402E3602-AC96-44BA-B13C-BA134615DA2E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED75B166-872C-4CFA-A909-2D2987678454}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED75B166-872C-4CFA-A909-2D2987678454}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED75B166-872C-4CFA-A909-2D2987678454}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED75B166-872C-4CFA-A909-2D2987678454}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

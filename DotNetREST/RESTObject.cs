@@ -18,6 +18,8 @@ namespace DotNetREST
      * 
      * After instantiating the class, call the statically typed object by calling RestObject.ExplicitObject
      * Or if you wish, you can call the dynamically typed RestObject.DynamicObject instead
+     * 
+     * .Net decimal values are only supported if they fall between double.MIN_VALUE and double.MAX_VALUE
      */ 
     public class RESTObject<T> where T : class, new()
     {
@@ -61,34 +63,34 @@ namespace DotNetREST
             foreach (var property in Target.GetType().GetProperties())
             {
                 var propertyName = property.Name;
-                if (Dict.ContainsKey(propertyName))
+                if (Dict.ContainsKey(propertyName) && Dict[propertyName] != null)
                 {
                     var val = Dict[propertyName];
                     var propertyVal = explicitType.GetProperty(propertyName);
                     var expectedType = property.PropertyType;
-                    if (val.GetType() != propertyVal.GetType() && val is IConvertible)
+                    var valType = val.GetType();
+                    if(valType == expectedType)
                     {
+                        //Hurray, we matched!
+                        propertyVal.SetValue(Target, val);
+                    }
+                    else if (valType != expectedType && val is IConvertible)
+                    {
+                        //Convert if possible
                         var explicitVal = Convert.ChangeType(val, propertyVal.PropertyType);
                         propertyVal.SetValue(Target, explicitVal);
                     }
                     else if (val is IDictionary<string, object>)
                     {
+                        //Parse non-simple object
                         var propType = propertyVal.PropertyType;
                         object explicitVal = Activator.CreateInstance(propType);
                         ParseDictionary(val as IDictionary<string, object>, out explicitVal, propType);
                         propertyVal.SetValue(Target, explicitVal);
                     }
-                    else if (val is T)
-                    {
-                        propertyVal.SetValue(Target, val as T);
-                    }
-                    else if (val is IList<T>)
-                    {
-                        var Tlist = val as IList<T>;
-                        propertyVal.SetValue(Target, Tlist);
-                    }
                     else if (val is IList)
                     {
+                        //Parse list/enumeration/array
                         Type elementType;
                         if (expectedType.IsArray)
                         {
@@ -105,6 +107,7 @@ namespace DotNetREST
                             //Not sure how we'd get here if we're neither an array nor generic, but we can't really do much
                             continue;
                         }
+                        //Create the necessary List implementation that we need
                         var listType = typeof(List<>);
                         var typedList = listType.MakeGenericType(elementType);
                         var explicitList = (IList)Activator.CreateInstance(typedList);
@@ -116,6 +119,7 @@ namespace DotNetREST
                         }
                         if(property.PropertyType.IsArray)
                         {
+                            //Convert from list to array if necessary
                             var arrayType = elementType.MakeArrayType();
                             var array = (Array)Activator.CreateInstance(arrayType, new object[] { explicitList.Count });
                             explicitList.CopyTo(array, 0);
@@ -128,6 +132,7 @@ namespace DotNetREST
                     }
                     else
                     {
+                        //Attempt to set it - will error if not compatible and all other checks are bypassed
                         propertyVal.SetValue(Target, val);
                     }
                 }
