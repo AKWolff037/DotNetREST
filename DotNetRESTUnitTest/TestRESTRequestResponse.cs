@@ -25,17 +25,18 @@ namespace DotNetRESTUnitTest
                                     quote, "TestLongValue", quote, colon, TestRESTObject.TEST_LONG.ToString(), comma, crlf,
                                     quote, "TestByteValue", quote, colon, TestRESTObject.TEST_BYTE.ToString(), comma, crlf,
                                     quote, "TestUnsignedIntValue", quote, colon, TestRESTObject.TEST_UINT.ToString(), comma, crlf,
-                                    quote, "TestFloatValue", quote, colon, TestRESTObject.TEST_FLOAT.ToString(), comma, crlf,
-                                    quote, "TestDoubleValue", quote, colon, TestRESTObject.TEST_DOUBLE.ToString(), comma, crlf,
+                                    quote, "TestFloatValue", quote, colon, TestRESTObject.TEST_FLOAT.ToString("R"), comma, crlf,
+                                    quote, "TestDoubleValue", quote, colon, TestRESTObject.TEST_DOUBLE.ToString("R"), comma, crlf,
                                     quote, "TestCharValue", quote, colon, quote, TestRESTObject.TEST_CHAR.ToString(), quote, comma, crlf,
-                                    quote, "TestDateTime", quote, colon, TestRESTObject.TEST_DATETIME.ToString(), comma, crlf,
+                                    quote, "TestDateTimeValue", quote, colon, quote, TestRESTObject.TEST_DATETIME.ToString(), quote, comma, crlf,
                                     quote, "ChildArray", quote, colon, "null", comma, crlf,
                                     quote, "ChildList", quote, colon, "null", crlf,
                                     closeBracket
                                    );
 
             Assert.IsTrue(json != null);
-            
+            // {"TestStringValue":"Test","TestBoolValue":true,"TestIntValue":-2147483648,"TestLongValue":9223372036854775807,"TestByteValue":250,"TestUnsignedIntValue":4294967295,"TestFloatValue":3.40282347E+38,"TestDoubleValue":1.7976931348623157E+308,"TestCharValue":"A","TestDateTime":6/3/1987 2:34:00 AM,"ChildArray":null,"ChildList":null}
+            // {"TestStringValue":"Test","TestBoolValue":true,"TestIntValue":-2147483648,"TestLongValue":9223372036854775807,"TestByteValue":250,"TestUnsignedIntValue":4294967295,"TestFloatValue":3.40282347E+38,"TestDoubleValue":1.7976931348623157E+308,"TestCharValue":"A","TestDateTimeValue":"1987-06-03T02:34:00","TestNullableStringValue":"Test","TestNullableBoolValue":true,"TestNullableIntValue":-2147483648,"TestNullableLongValue":9223372036854775807,"TestNullableByteValue":250,"TestNullableUIntValue":4294967295,"TestNullableFloatValue":3.40282347E+38,"TestNullableDoubleValue":1.7976931348623157E+308,"TestNullableCharValue":"A","TestNullableDateTimeValue":"1987-06-03T02:34:00","ChildArray":null,"ChildList":null}
             var request = CreateTestHttpRequest(CreateTestHttpResponse(json));
             request.Method = "GET";
             Assert.IsNotNull(request);
@@ -48,7 +49,7 @@ namespace DotNetRESTUnitTest
             Assert.IsNotNull(testObject);            
             var testExplicit = testObject.ExplicitObject;
             Assert.IsNotNull(testExplicit);
-            TestRESTObject.AssertValidValuesForTestClass(testExplicit, false, false, false);
+            TestRESTObject.AssertValidValuesForTestClass(testExplicit, false, false, false, false);
         }
         private static string CreateString(params string[] parms)
         {

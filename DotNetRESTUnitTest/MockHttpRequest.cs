@@ -44,5 +44,10 @@ namespace DotNetRESTUnitTest
         {
             return GetResponse();
         }
+
+        public Uri RequestUri
+        {
+            get { return new Uri("http://locahost:8080/api/"); }
+        }
     }
 }

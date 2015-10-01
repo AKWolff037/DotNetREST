@@ -10,6 +10,8 @@ namespace DotNetREST
     public class RESTWebRequest
     {
         public Dictionary<string, string> HeaderParameters { get; set; }
+        public ParameterType HeaderParameterType { get; set;}
+
         public IRequest Base
         {
             get { return _baseRequest; }
@@ -17,7 +19,7 @@ namespace DotNetREST
         private IRequest _baseRequest;
         private RESTWebRequest()
         {
-            _baseRequest = (IRequest)HttpWebRequest.Create("http://localhost:8080");
+            _baseRequest = new RESTRequest(HttpWebRequest.Create("http://localhost:8080"));
             InitRequest();
         }
         public RESTWebRequest(IRequest request)
@@ -27,30 +29,60 @@ namespace DotNetREST
         }
         public RESTWebRequest(Uri uri, HttpVerb verb)
         {
-            _baseRequest = (IRequest)WebRequest.Create(uri);
+            _baseRequest = new RESTRequest(HttpWebRequest.Create(uri));
             _baseRequest.Method = verb.ToString();
             InitRequest();
         }
-        public RESTWebRequest(string uri, HttpVerb verb)
-        {
-            _baseRequest = (IRequest)WebRequest.Create(uri);
-            _baseRequest.Method = verb.ToString();
-            InitRequest();
-        }
+
         private void InitRequest()
         {
             HeaderParameters = new Dictionary<string, string>();
+            HeaderParameterType = ParameterType.HEADER;
         }
         public RESTWebResponse GetRESTResponse()
         {
             //Add parameters into Headers
-            foreach(var pair in HeaderParameters)
-            {
-                _baseRequest.Headers.Add(pair.Key, pair.Value);
-            }
+            AddParameters();
             var restResponse = new RESTWebResponse(_baseRequest);
             return restResponse;
         }
+        private void AddParameters()
+        {
+            switch(HeaderParameterType)
+            {
+                case ParameterType.HEADER:
+                    foreach(var pair in HeaderParameters)
+                    {
+                        _baseRequest.Headers.Add(pair.Key, pair.Value);
+                    }
+                    break;
+                case ParameterType.URI:
+                default:
+                    var parameterString = "";
+                    var isFirstParam = true;
+                    foreach(var pair in HeaderParameters)
+                    {
+                        if(isFirstParam)
+                        {
+                            parameterString += "?" + pair.Key + "=" + pair.Value;
+                            isFirstParam = false;
+                        }
+                        else
+                        {
+                            parameterString += "&" + pair.Key + "=" + pair.Value;
+                        }
+                    }
+                    var newUri = _baseRequest.RequestUri + parameterString;
+                    var originalRequest = _baseRequest;
+                    _baseRequest = new RESTRequest(HttpWebRequest.Create(newUri), originalRequest);
+                    break;
+            }
+        }
+    }
+    public enum ParameterType
+    {
+        URI,
+        HEADER
     }
     public enum HttpVerb
     {
@@ -65,6 +97,27 @@ namespace DotNetREST
         public RESTRequest(WebRequest request)
         {
             _baseRequest = request;
+        }
+        public RESTRequest(WebRequest newRequest, IRequest oldRequest)
+        {
+            //Probably really slow, but makes sure we get the same 
+            foreach(var property in oldRequest.GetType().GetProperties())
+            {
+                //Make sure property exists in new request in case they are different
+                var propExists = newRequest.GetType().GetProperties().Contains(property);
+                if (propExists)
+                {
+                    if (property.Name != "RequestUri")
+                    {
+                        property.SetValue(newRequest, property.GetValue(oldRequest));
+                    }
+                }
+            }
+            _baseRequest = newRequest;
+        }
+        public Uri RequestUri
+        {
+            get { return _baseRequest.RequestUri; }            
         }
         public System.Net.Security.AuthenticationLevel AuthenticationLevel
         {
@@ -143,6 +196,7 @@ namespace DotNetREST
     }
     public interface IRequest
     {
+        Uri RequestUri { get; }
         System.Net.Security.AuthenticationLevel AuthenticationLevel { get; set; }
         ICredentials Credentials { get; set; }
         int Timeout { get; set; }

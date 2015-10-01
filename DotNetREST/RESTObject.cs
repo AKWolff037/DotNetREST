@@ -85,8 +85,10 @@ namespace DotNetREST
                     else if (valType != expectedType && val is IConvertible)
                     {
                         //Convert if possible
-                        var explicitVal = Convert.ChangeType(val, propertyVal.PropertyType);
-                        propertyVal.SetValue(Target, explicitVal);
+                        Type safeType = Nullable.GetUnderlyingType(expectedType) ?? expectedType;
+                        var explicitVal = (val == null ? null : Convert.ChangeType(val, safeType));
+                        propertyVal.SetValue(Target, explicitVal, null);
+                        
                     }
                     else if (val is IDictionary<string, object>)
                     {

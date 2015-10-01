@@ -31,6 +31,18 @@ namespace DotNetRESTUnitTest
         public double TestDoubleValue { get; set; }
         public char TestCharValue { get; set; }
         public DateTime TestDateTimeValue { get; set; }
+
+        public string TestNullableStringValue { get; set; }
+        public bool? TestNullableBoolValue { get; set; }
+        public int? TestNullableIntValue { get; set; }
+        public long? TestNullableLongValue { get; set; }
+        public byte? TestNullableByteValue { get; set; }
+        public uint? TestNullableUIntValue { get; set; }
+        public float? TestNullableFloatValue { get; set; }
+        public double? TestNullableDoubleValue { get; set; }
+        public char? TestNullableCharValue { get; set; }
+        public DateTime? TestNullableDateTimeValue { get; set; }
+
         public TestRESTObject[] ChildArray { get; set; }
         public IList<TestRESTObject> ChildList { get; set; }
 
@@ -43,41 +55,46 @@ namespace DotNetRESTUnitTest
         [TestMethod]
         public void TestDefaultValues()
         {
-            var defaultTestObject = CreateTestObject();
+            var defaultTestObject = CreateTestObject(false);
             var restObject = SerializeAndParseRESTObject(defaultTestObject);
             var convertedTestObject = restObject.ExplicitObject;
-            AssertValidValuesForTestClass(convertedTestObject, false, false, false);
+            AssertValidValuesForTestClass(convertedTestObject, false, false, false, false);
+
+            var defaultTestObjectWithNulls = CreateTestObject(true);
+            restObject = SerializeAndParseRESTObject(defaultTestObjectWithNulls);
+            convertedTestObject = restObject.ExplicitObject;
+            AssertValidValuesForTestClass(convertedTestObject, false, false, false, true);
         }
 
         [TestMethod]
         public void TestObjectWithArray()
         {
-            var defaultTestObject = CreateTestObject();
-            defaultTestObject.ChildArray = new TestRESTObject[] { CreateTestObject(), CreateTestObject() };
+            var defaultTestObject = CreateTestObject(false);
+            defaultTestObject.ChildArray = new TestRESTObject[] { CreateTestObject(false), CreateTestObject(false) };
             var restObject = SerializeAndParseRESTObject(defaultTestObject);
             var convertedTestObject = restObject.ExplicitObject;
-            AssertValidValuesForTestClass(convertedTestObject, true, false, false);
+            AssertValidValuesForTestClass(convertedTestObject, true, false, false, false);
         }
         [TestMethod]
         public void TestObjectWithList()
         {
-            var defaultTestObject = CreateTestObject();
-            defaultTestObject.ChildList = new List<TestRESTObject>() { CreateTestObject(), CreateTestObject() };
+            var defaultTestObject = CreateTestObject(true);
+            defaultTestObject.ChildList = new List<TestRESTObject>() { CreateTestObject(true), CreateTestObject(true) };
             var restObject = SerializeAndParseRESTObject(defaultTestObject);
             var convertedTestObject = restObject.ExplicitObject;
-            AssertValidValuesForTestClass(convertedTestObject, false, true, false);
+            AssertValidValuesForTestClass(convertedTestObject, false, true, false, true);
         }
         [TestMethod]
         public void TestObjectWithListAndArray()
         {
-            var defaultTestObject = CreateTestObject();
-            defaultTestObject.ChildArray = new TestRESTObject[] { CreateTestObject(), CreateTestObject() };
-            defaultTestObject.ChildList = new List<TestRESTObject>() { CreateTestObject(), CreateTestObject() };
+            var defaultTestObject = CreateTestObject(false);
+            defaultTestObject.ChildArray = new TestRESTObject[] { CreateTestObject(false), CreateTestObject(false) };
+            defaultTestObject.ChildList = new List<TestRESTObject>() { CreateTestObject(false), CreateTestObject(false) };
             var restObject = SerializeAndParseRESTObject(defaultTestObject);
             var convertedTestObject = restObject.ExplicitObject;
-            AssertValidValuesForTestClass(convertedTestObject, true, true, false);
+            AssertValidValuesForTestClass(convertedTestObject, true, true, false, false);
         }
-        private static TestRESTObject CreateTestObject()
+        private static TestRESTObject CreateTestObject(bool populateNulls)
         {
             var testObj = new TestRESTObject();
             testObj.TestStringValue = TEST_STRING;
@@ -90,7 +107,19 @@ namespace DotNetRESTUnitTest
             testObj.TestDoubleValue = TEST_DOUBLE;
             testObj.TestCharValue = TEST_CHAR;
             testObj.TestDateTimeValue = TEST_DATETIME;
-
+            if(populateNulls)
+            {
+                testObj.TestNullableStringValue = TEST_STRING;
+                testObj.TestNullableBoolValue = TEST_BOOL;
+                testObj.TestNullableIntValue = TEST_INT;
+                testObj.TestNullableLongValue = TEST_LONG;
+                testObj.TestNullableByteValue = TEST_BYTE;
+                testObj.TestNullableFloatValue = TEST_FLOAT;
+                testObj.TestNullableUIntValue = TEST_UINT;
+                testObj.TestNullableDoubleValue = TEST_DOUBLE;
+                testObj.TestNullableCharValue = TEST_CHAR;
+                testObj.TestNullableDateTimeValue = TEST_DATETIME;
+            }
             return testObj;
         }
         private static RESTObject<TestRESTObject> SerializeAndParseRESTObject(TestRESTObject testObject)
@@ -101,7 +130,7 @@ namespace DotNetRESTUnitTest
             Assert.IsTrue(restObject.ExplicitObject != null, "Explicit Object was not correctly populated");
             return restObject;
         }
-        public static void AssertValidValuesForTestClass(TestRESTObject convertedTestObject, bool checkChildArray, bool checkChildList, bool isChildCheck)
+        public static void AssertValidValuesForTestClass(TestRESTObject convertedTestObject, bool checkChildArray, bool checkChildList, bool isChildCheck, bool areNullsPopulated)
         {
             //Check to make sure that all values are correct
             Assert.AreEqual(convertedTestObject.TestStringValue, TEST_STRING);
@@ -114,6 +143,19 @@ namespace DotNetRESTUnitTest
             Assert.AreEqual(convertedTestObject.TestDoubleValue, TEST_DOUBLE);
             Assert.AreEqual(convertedTestObject.TestCharValue, TEST_CHAR);
             Assert.AreEqual(convertedTestObject.TestDateTimeValue, TEST_DATETIME);
+            if(areNullsPopulated)
+            {
+                Assert.AreEqual(convertedTestObject.TestNullableStringValue, TEST_STRING);
+                Assert.AreEqual(convertedTestObject.TestNullableBoolValue, TEST_BOOL);
+                Assert.AreEqual(convertedTestObject.TestNullableIntValue, TEST_INT);
+                Assert.AreEqual(convertedTestObject.TestNullableLongValue, TEST_LONG);
+                Assert.AreEqual(convertedTestObject.TestNullableByteValue, TEST_BYTE);
+                Assert.AreEqual(convertedTestObject.TestNullableFloatValue, TEST_FLOAT);
+                Assert.AreEqual(convertedTestObject.TestNullableUIntValue, TEST_UINT);
+                Assert.AreEqual(convertedTestObject.TestNullableDoubleValue, TEST_DOUBLE);
+                Assert.AreEqual(convertedTestObject.TestNullableCharValue, TEST_CHAR);
+                Assert.AreEqual(convertedTestObject.TestNullableDateTimeValue, TEST_DATETIME);
+            }
             if (!checkChildArray || isChildCheck)
             {
                 Assert.IsNull(convertedTestObject.ChildArray);
@@ -125,7 +167,7 @@ namespace DotNetRESTUnitTest
                 for (int i = 0; i < convertedTestObject.ChildArray.Length; i++)
                 {
                     var childObject = convertedTestObject.ChildArray[i];
-                    AssertValidValuesForTestClass(childObject, false, false, true);
+                    AssertValidValuesForTestClass(childObject, false, false, true, areNullsPopulated);
                 }
             }
             if (!checkChildList || isChildCheck)
@@ -138,7 +180,7 @@ namespace DotNetRESTUnitTest
                 Assert.IsTrue(convertedTestObject.ChildList.Count > 0);
                 foreach (var childObject in convertedTestObject.ChildList)
                 {
-                    AssertValidValuesForTestClass(childObject, false, false, true);
+                    AssertValidValuesForTestClass(childObject, false, false, true, areNullsPopulated);
                 }
             }
         }
