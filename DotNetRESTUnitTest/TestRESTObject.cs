@@ -10,15 +10,16 @@ namespace DotNetRESTUnitTest
     [TestClass]
     public class TestRESTObject
     {
-        const string TEST_STRING = "Test";
-        const bool TEST_BOOL = true;
-        const int TEST_INT = int.MinValue;
-        const long TEST_LONG = long.MaxValue;
-        const byte TEST_BYTE = 0xFA;
-        const uint TEST_UINT = uint.MaxValue;
-        const float TEST_FLOAT = float.MaxValue;
-        const double TEST_DOUBLE = double.MaxValue;
-        const char TEST_CHAR = 'A';
+        public const string TEST_STRING = "Test";
+        public const bool TEST_BOOL = true;
+        public const int TEST_INT = int.MinValue;
+        public const long TEST_LONG = long.MaxValue;
+        public const byte TEST_BYTE = 0xFA;
+        public const uint TEST_UINT = uint.MaxValue;
+        public const float TEST_FLOAT = float.MaxValue;
+        public const double TEST_DOUBLE = double.MaxValue;
+        public const char TEST_CHAR = 'A';
+        public static DateTime TEST_DATETIME = DateTime.Parse("6/3/1987 2:34am");
 
         public string TestStringValue { get; set; }
         public bool TestBoolValue { get; set; }
@@ -29,6 +30,7 @@ namespace DotNetRESTUnitTest
         public float TestFloatValue { get; set; }
         public double TestDoubleValue { get; set; }
         public char TestCharValue { get; set; }
+        public DateTime TestDateTimeValue { get; set; }
         public TestRESTObject[] ChildArray { get; set; }
         public IList<TestRESTObject> ChildList { get; set; }
 
@@ -87,6 +89,8 @@ namespace DotNetRESTUnitTest
             testObj.TestUnsignedIntValue = TEST_UINT;
             testObj.TestDoubleValue = TEST_DOUBLE;
             testObj.TestCharValue = TEST_CHAR;
+            testObj.TestDateTimeValue = TEST_DATETIME;
+
             return testObj;
         }
         private static RESTObject<TestRESTObject> SerializeAndParseRESTObject(TestRESTObject testObject)
@@ -109,6 +113,7 @@ namespace DotNetRESTUnitTest
             Assert.AreEqual(convertedTestObject.TestFloatValue, TEST_FLOAT);
             Assert.AreEqual(convertedTestObject.TestDoubleValue, TEST_DOUBLE);
             Assert.AreEqual(convertedTestObject.TestCharValue, TEST_CHAR);
+            Assert.AreEqual(convertedTestObject.TestDateTimeValue, TEST_DATETIME);
             if (!checkChildArray || isChildCheck)
             {
                 Assert.IsNull(convertedTestObject.ChildArray);

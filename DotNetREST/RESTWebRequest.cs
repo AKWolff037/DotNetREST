@@ -9,7 +9,7 @@ namespace DotNetREST
 {
     public class RESTWebRequest
     {
-        public Dictionary<string, string> RequestParameters { get; set; }
+        public Dictionary<string, string> HeaderParameters { get; set; }
         public IRequest Base
         {
             get { return _baseRequest; }
@@ -39,12 +39,12 @@ namespace DotNetREST
         }
         private void InitRequest()
         {
-            RequestParameters = new Dictionary<string, string>();
+            HeaderParameters = new Dictionary<string, string>();
         }
         public RESTWebResponse GetRESTResponse()
         {
             //Add parameters into Headers
-            foreach(var pair in RequestParameters)
+            foreach(var pair in HeaderParameters)
             {
                 _baseRequest.Headers.Add(pair.Key, pair.Value);
             }
