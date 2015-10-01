@@ -4,10 +4,11 @@ using DotNetREST;
 using System.Text;
 using Newtonsoft.Json;
 namespace DotNetRESTUnitTest
-{
+{    
     [TestClass]
     public class TestRESTWebRequest
     {
+        public static DateTime UNIX_EPOCH = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
         [TestMethod]
         public void TestRequestAndResponse()
         {
@@ -28,7 +29,7 @@ namespace DotNetRESTUnitTest
                                     quote, "TestFloatValue", quote, colon, TestRESTObject.TEST_FLOAT.ToString("R"), comma, crlf,
                                     quote, "TestDoubleValue", quote, colon, TestRESTObject.TEST_DOUBLE.ToString("R"), comma, crlf,
                                     quote, "TestCharValue", quote, colon, quote, TestRESTObject.TEST_CHAR.ToString(), quote, comma, crlf,
-                                    quote, "TestDateTimeValue", quote, colon, quote, TestRESTObject.TEST_DATETIME.ToString(), quote, comma, crlf,
+                                    quote, "TestDateTimeValue", quote, colon, TestRESTObject.TEST_DATETIME.Subtract(UNIX_EPOCH).TotalSeconds.ToString(), comma, crlf,
                                     quote, "ChildArray", quote, colon, "null", comma, crlf,
                                     quote, "ChildList", quote, colon, "null", crlf,
                                     closeBracket

@@ -19,7 +19,7 @@ namespace DotNetRESTUnitTest
         public const float TEST_FLOAT = float.MaxValue;
         public const double TEST_DOUBLE = double.MaxValue;
         public const char TEST_CHAR = 'A';
-        public static DateTime TEST_DATETIME = DateTime.Parse("6/3/1987 2:34am");
+        public static DateTime TEST_DATETIME = new DateTime(1987, 6, 3, 2, 34, 00, DateTimeKind.Utc);
 
         public string TestStringValue { get; set; }
         public bool TestBoolValue { get; set; }

@@ -25,6 +25,7 @@ namespace DotNetREST
     {
         private ExpandoObject _dynamic;
         private T _explicit;
+        private static DateTime UNIX_EPOCH = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
 
         public ExpandoObject DynamicObject { get { return _dynamic; } }
         public T ExplicitObject { get { return _explicit; } }
@@ -84,8 +85,16 @@ namespace DotNetREST
                     }
                     else if (valType != expectedType && val is IConvertible)
                     {
-                        //Convert if possible
                         Type safeType = Nullable.GetUnderlyingType(expectedType) ?? expectedType;
+                        //Special Case - INT64 to DATETIME Conversion (UNIX Time)
+                        if((valType == typeof(long) || valType == typeof(long?))
+                            && (safeType == typeof(DateTime) || safeType == typeof(DateTime?)))
+                        {
+                            var longValue = (long)Convert.ChangeType(val, typeof(long));
+                            var dateValue = UNIX_EPOCH.AddSeconds(longValue);
+                            val = dateValue;
+                        }
+                        //Convert if possible
                         var explicitVal = (val == null ? null : Convert.ChangeType(val, safeType));
                         propertyVal.SetValue(Target, explicitVal, null);
                         
