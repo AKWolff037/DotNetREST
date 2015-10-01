@@ -38,7 +38,7 @@ namespace DotNetREST
         public RESTObject(RESTWebResponse response)
         {
             //Get the JSON from a Web Response and parse it into an ExpandoObject and typed T object
-            var responseStream = new System.IO.StreamReader(response.Base.GetResponseStream());
+            var responseStream = new System.IO.StreamReader(response.Base.GetStream());
             var responseJson = Newtonsoft.Json.JsonConvert.DeserializeObject<ExpandoObject>(responseStream.ReadToEnd());
             ParseDynamic(responseJson);
         }
@@ -51,6 +51,10 @@ namespace DotNetREST
         }
         protected static void ParseDictionary(IDictionary<string, object> Dict, out object Target, Type explicitType)
         {
+            if(Dict == null)
+            {
+                throw new InvalidOperationException("Dictionary was null, cannot parse a null dictionary");
+            }
             if (explicitType.IsArray)
             {
                 var length = Dict.Keys.Count();

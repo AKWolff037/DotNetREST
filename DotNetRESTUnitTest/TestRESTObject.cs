@@ -97,7 +97,7 @@ namespace DotNetRESTUnitTest
             Assert.IsTrue(restObject.ExplicitObject != null, "Explicit Object was not correctly populated");
             return restObject;
         }
-        private static void AssertValidValuesForTestClass(TestRESTObject convertedTestObject, bool checkChildArray, bool checkChildList, bool isChildCheck)
+        public static void AssertValidValuesForTestClass(TestRESTObject convertedTestObject, bool checkChildArray, bool checkChildList, bool isChildCheck)
         {
             //Check to make sure that all values are correct
             Assert.AreEqual(convertedTestObject.TestStringValue, TEST_STRING);
