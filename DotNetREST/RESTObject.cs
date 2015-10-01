@@ -29,13 +29,6 @@ namespace DotNetREST
         public ExpandoObject DynamicObject { get { return _dynamic; } }
         public T ExplicitObject { get { return _explicit; } }
 
-        public static async Task<RESTObject<T>> GetRESTObjectAsync(RESTWebResponse response)
-        {
-            var responseStream = new System.IO.StreamReader(await response.Base.GetStreamAsync());
-            var responseJson = Newtonsoft.Json.JsonConvert.DeserializeObject<ExpandoObject>(responseStream.ReadToEnd());
-            var returnObj = new RESTObject<T>(responseJson);
-            return returnObj;
-        }
         protected RESTObject(ExpandoObject expando)
         {
             ParseDynamic(expando);

@@ -43,7 +43,66 @@ namespace DotNetREST
         string ContentType { get; set; }
         long ContentLength { get; }
         Stream GetStream();
-        Task<Stream> GetStreamAsync();
         void Close();
+    }
+    public class RESTResponse : IResponse
+    {
+        private WebResponse _baseResponse;
+        public RESTResponse(WebResponse response)
+        {
+            _baseResponse = response;
+        }
+
+        public Uri ResponseUri
+        {
+            get { return _baseResponse.ResponseUri; }
+        }
+
+        public bool IsMutuallyAuthenticated
+        {
+            get { return _baseResponse.IsMutuallyAuthenticated; }
+        }
+
+        public bool IsFromCache
+        {
+            get { return _baseResponse.IsFromCache; }
+        }
+
+        public bool SupportsHeaders
+        {
+            get { return _baseResponse.SupportsHeaders; }
+        }
+
+        public WebHeaderCollection Headers
+        {
+            get { return _baseResponse.Headers; }
+        }
+
+        public string ContentType
+        {
+            get
+            {
+                return _baseResponse.ContentType;
+            }
+            set
+            {
+                _baseResponse.ContentType = value;
+            }
+        }
+
+        public long ContentLength
+        {
+            get { return _baseResponse.ContentLength; }
+        }
+
+        public Stream GetStream()
+        {
+            return _baseResponse.GetResponseStream();
+        }
+
+        public void Close()
+        {
+            _baseResponse.Close();
+        }
     }
 }

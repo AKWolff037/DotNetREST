@@ -59,6 +59,88 @@ namespace DotNetREST
         POST,
         DELETE
     }
+    public class RESTRequest : IRequest
+    {
+        private WebRequest _baseRequest;
+        public RESTRequest(WebRequest request)
+        {
+            _baseRequest = request;
+        }
+        public System.Net.Security.AuthenticationLevel AuthenticationLevel
+        {
+            get
+            {
+                return _baseRequest.AuthenticationLevel;
+            }
+            set
+            {
+                _baseRequest.AuthenticationLevel = value;
+            }
+        }
+
+        public ICredentials Credentials
+        {
+            get
+            {
+                return _baseRequest.Credentials;
+            }
+            set
+            {
+                _baseRequest.Credentials = value;
+            }
+        }
+
+        public int Timeout
+        {
+            get
+            {
+                return _baseRequest.Timeout;
+            }
+            set
+            {
+                _baseRequest.Timeout = value;
+            }
+        }
+
+        public WebHeaderCollection Headers
+        {
+            get { return _baseRequest.Headers; }
+        }
+
+        public IWebProxy Proxy
+        {
+            get
+            {
+                return _baseRequest.Proxy;
+            }
+            set
+            {
+                _baseRequest.Proxy = value;
+            }
+        }
+
+        public IResponse GetResponse()
+        {
+            return new RESTResponse(_baseRequest.GetResponse());
+        }
+
+        public async Task<IResponse> GetResponseAsync()
+        {
+            return new RESTResponse(await _baseRequest.GetResponseAsync());
+        }
+
+        public string Method
+        {
+            get
+            {
+                return _baseRequest.Method;
+            }
+            set
+            {
+                _baseRequest.Method = value;
+            }
+        }
+    }
     public interface IRequest
     {
         System.Net.Security.AuthenticationLevel AuthenticationLevel { get; set; }
