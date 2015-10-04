@@ -56,8 +56,7 @@ namespace DotNetREST
         {
             InitRestObject();
             //Get the JSON from a Web Response and parse it into an ExpandoObject and typed T object
-            var responseStream = new System.IO.StreamReader(response.Base.GetStream());
-            var responseString = responseStream.ReadToEnd();
+            var responseString = response.ResponseStreamAsString;
             ParseJson(responseString);
         }
         private void ParseJson(string json)

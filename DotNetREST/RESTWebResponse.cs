@@ -32,6 +32,16 @@ namespace DotNetREST
             var response = await request.GetResponseAsync();
             return new RESTWebResponse(response);
         }
+        public string ResponseStreamAsString
+        {
+            get
+            {
+                var responseStream = new System.IO.StreamReader(Base.GetStream());
+                var responseString = responseStream.ReadToEnd();
+                return responseString;
+            }
+        }
+
     }
     public interface IResponse
     {

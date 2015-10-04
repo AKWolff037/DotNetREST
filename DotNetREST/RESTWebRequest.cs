@@ -39,8 +39,10 @@ namespace DotNetREST
         }
         public RESTWebResponse GetRESTResponse()
         {
-            //Add parameters into Headers
-            AddParameters();
+            if (_baseRequest.Method.ToUpper() != "GET")
+            {
+                AddParameters();
+            }
             var restResponse = new RESTWebResponse(_baseRequest);
             return restResponse;
         }
@@ -49,10 +51,17 @@ namespace DotNetREST
             bool isUriChanged = false;
             bool isFirstQueryParam = true;
             var parameterString = "";
+            var requestStream = _baseRequest.GetRequestStream();
+            var currentPosition = 0;
             foreach (var restParameter in Parameters)
             {                
                 switch (restParameter.Method)
                 {
+                    case RESTParameterMethod.REQUEST_STREAM:
+                        var parameterBytes = restParameter.StringEncoder.GetBytes(restParameter.Value.ToString());
+                        requestStream.Write(parameterBytes, currentPosition, parameterBytes.Length);
+                        currentPosition += parameterBytes.Length;
+                        break;
                     case RESTParameterMethod.REQUEST_HEADER:
                         _baseRequest.Headers.Add(restParameter.Name, restParameter.Value.ToString());
                         break;
@@ -70,13 +79,14 @@ namespace DotNetREST
                         isUriChanged = true;
                         break;
                 }
-            }
+            }            
             if(isUriChanged)
             {
                 var newUri = _baseRequest.RequestUri + parameterString;
                 var originalRequest = _baseRequest;
                 _baseRequest = new RESTRequest(HttpWebRequest.Create(newUri), originalRequest);
             }
+            _baseRequest.ContentType = "application/json";
         }
     }
     public enum ParameterType
@@ -193,9 +203,22 @@ namespace DotNetREST
                 _baseRequest.Method = value;
             }
         }
+
+        public long ContentLength { get { return _baseRequest.ContentLength; } set { _baseRequest.ContentLength = value; } }
+        public string ContentType { get { return _baseRequest.ContentType; } set { _baseRequest.ContentType = value; } }
+        public Stream GetRequestStream()
+        {
+            return _baseRequest.GetRequestStream();
+        }
+        public async Task<Stream> GetRequestStreamAsync()
+        {
+            return await _baseRequest.GetRequestStreamAsync();
+        }
     }
     public interface IRequest
     {
+        long ContentLength { get; set; }
+        string ContentType { get; set; }
         Uri RequestUri { get; }
         System.Net.Security.AuthenticationLevel AuthenticationLevel { get; set; }
         ICredentials Credentials { get; set; }
@@ -205,5 +228,7 @@ namespace DotNetREST
         IResponse GetResponse();
         Task<IResponse> GetResponseAsync();
         string Method { get; set; }
+        Stream GetRequestStream();
+        Task<Stream> GetRequestStreamAsync();
     }
 }
