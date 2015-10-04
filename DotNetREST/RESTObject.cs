@@ -24,35 +24,69 @@ namespace DotNetREST
     public class RESTObject<T> where T : class, new()
     {
         private ExpandoObject _dynamic;
+        private ICollection<ExpandoObject> _dynamicList;
         private T _explicit;
+        private ICollection<T> _explicitList;
+
         private static DateTime UNIX_EPOCH = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
 
         public ExpandoObject DynamicObject { get { return _dynamic; } }
         public T ExplicitObject { get { return _explicit; } }
-
+        public ICollection<T> ExplicitCollection { get { return _explicitList; } }
+        public ICollection<ExpandoObject> DynamicCollection { get { return _dynamicList; } }
+        protected RESTObject()
+        {
+            InitRestObject();
+        }
+        private void InitRestObject()
+        {
+            _dynamicList = new List<ExpandoObject>();
+            _explicitList = new List<T>();
+        }
         protected RESTObject(ExpandoObject expando)
         {
             ParseDynamic(expando);
         }
         public RESTObject(string json)
         {
-            //Deserialize the json string into an ExpandoObject
-            var jsonObject = JsonConvert.DeserializeObject<ExpandoObject>(json);
-            ParseDynamic(jsonObject);
+            InitRestObject();
+            ParseJson(json);
         }
         public RESTObject(RESTWebResponse response)
         {
+            InitRestObject();
             //Get the JSON from a Web Response and parse it into an ExpandoObject and typed T object
             var responseStream = new System.IO.StreamReader(response.Base.GetStream());
-            var responseJson = Newtonsoft.Json.JsonConvert.DeserializeObject<ExpandoObject>(responseStream.ReadToEnd());
-            ParseDynamic(responseJson);
+            var responseString = responseStream.ReadToEnd();
+            ParseJson(responseString);
         }
-        private void ParseDynamic(ExpandoObject input)
+        private void ParseJson(string json)
+        {
+            var isCollection = json.StartsWith("[");
+            if(!isCollection)
+            {
+                var responseJson = Newtonsoft.Json.JsonConvert.DeserializeObject<ExpandoObject>(json);
+                _dynamic = responseJson;
+                _explicit = ParseDynamic(responseJson);
+            }
+            else
+            {
+                var responseJson = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ExpandoObject>>(json);
+                foreach (var dict in responseJson)
+                {
+                    var exp = ParseDynamic(dict);
+                    _dynamicList.Add(dict);
+                    _explicitList.Add(exp);
+                }
+            }
+        }
+        private static T ParseDynamic(ExpandoObject input)
         {
             //Parse when given an ExpandoObject
-            _dynamic = input;
-            var dict = _dynamic as IDictionary<string, object>;
-            ParseDictionary<T>(dict, out _explicit);
+            T output = default(T);
+            var dict = input as IDictionary<string, object>;
+            ParseDictionary<T>(dict, out output);
+            return output;
         }
         protected static void ParseDictionary(IDictionary<string, object> Dict, out object Target, Type explicitType)
         {

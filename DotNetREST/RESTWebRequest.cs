@@ -9,8 +9,7 @@ namespace DotNetREST
 {
     public class RESTWebRequest
     {
-        public Dictionary<string, string> HeaderParameters { get; set; }
-        public ParameterType HeaderParameterType { get; set;}
+        public ICollection<RESTParameter> Parameters { get; set; }
 
         public IRequest Base
         {
@@ -36,8 +35,7 @@ namespace DotNetREST
 
         private void InitRequest()
         {
-            HeaderParameters = new Dictionary<string, string>();
-            HeaderParameterType = ParameterType.HEADER;
+            Parameters = new List<RESTParameter>();
         }
         public RESTWebResponse GetRESTResponse()
         {
@@ -48,34 +46,36 @@ namespace DotNetREST
         }
         private void AddParameters()
         {
-            switch(HeaderParameterType)
-            {
-                case ParameterType.HEADER:
-                    foreach(var pair in HeaderParameters)
-                    {
-                        _baseRequest.Headers.Add(pair.Key, pair.Value);
-                    }
-                    break;
-                case ParameterType.URI:
-                default:
-                    var parameterString = "";
-                    var isFirstParam = true;
-                    foreach(var pair in HeaderParameters)
-                    {
-                        if(isFirstParam)
+            bool isUriChanged = false;
+            bool isFirstQueryParam = true;
+            var parameterString = "";
+            foreach (var restParameter in Parameters)
+            {                
+                switch (restParameter.Method)
+                {
+                    case RESTParameterMethod.REQUEST_HEADER:
+                        _baseRequest.Headers.Add(restParameter.Name, restParameter.Value.ToString());
+                        break;
+                    case RESTParameterMethod.QUERY_STRING:
+                    default:                                                
+                        if (isFirstQueryParam)
                         {
-                            parameterString += "?" + pair.Key + "=" + pair.Value;
-                            isFirstParam = false;
+                            parameterString += "?" + restParameter.Name + "=" + restParameter.Value;
+                            isFirstQueryParam = false;
                         }
                         else
                         {
-                            parameterString += "&" + pair.Key + "=" + pair.Value;
+                            parameterString += "&" + restParameter.Name + "=" + restParameter.Value;
                         }
-                    }
-                    var newUri = _baseRequest.RequestUri + parameterString;
-                    var originalRequest = _baseRequest;
-                    _baseRequest = new RESTRequest(HttpWebRequest.Create(newUri), originalRequest);
-                    break;
+                        isUriChanged = true;
+                        break;
+                }
+            }
+            if(isUriChanged)
+            {
+                var newUri = _baseRequest.RequestUri + parameterString;
+                var originalRequest = _baseRequest;
+                _baseRequest = new RESTRequest(HttpWebRequest.Create(newUri), originalRequest);
             }
         }
     }
