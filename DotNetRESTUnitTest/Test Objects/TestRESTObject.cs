@@ -7,7 +7,6 @@ using DotNetREST;
 
 namespace DotNetRESTUnitTest
 {
-    [TestClass]
     public class TestRESTObject
     {
         public const string TEST_STRING = "Test";
@@ -20,7 +19,9 @@ namespace DotNetRESTUnitTest
         public const double TEST_DOUBLE = double.MaxValue;
         public const char TEST_CHAR = 'A';
         public static DateTime TEST_DATETIME = new DateTime(1987, 6, 3, 2, 34, 00, DateTimeKind.Utc);
+        private static int _lastId = 0;
 
+        public int ID { get; set; }
         public string TestStringValue { get; set; }
         public bool TestBoolValue { get; set; }
         public int TestIntValue { get; set; }
@@ -51,52 +52,10 @@ namespace DotNetRESTUnitTest
 
         }
         
-
-        [TestMethod]
-        public void TestDefaultValues()
-        {
-            var defaultTestObject = CreateTestObject(false);
-            var restObject = SerializeAndParseRESTObject(defaultTestObject);
-            var convertedTestObject = restObject.ExplicitObject;
-            AssertValidValuesForTestClass(convertedTestObject, false, false, false, false);
-
-            var defaultTestObjectWithNulls = CreateTestObject(true);
-            restObject = SerializeAndParseRESTObject(defaultTestObjectWithNulls);
-            convertedTestObject = restObject.ExplicitObject;
-            AssertValidValuesForTestClass(convertedTestObject, false, false, false, true);
-        }
-
-        [TestMethod]
-        public void TestObjectWithArray()
-        {
-            var defaultTestObject = CreateTestObject(false);
-            defaultTestObject.ChildArray = new TestRESTObject[] { CreateTestObject(false), CreateTestObject(false) };
-            var restObject = SerializeAndParseRESTObject(defaultTestObject);
-            var convertedTestObject = restObject.ExplicitObject;
-            AssertValidValuesForTestClass(convertedTestObject, true, false, false, false);
-        }
-        [TestMethod]
-        public void TestObjectWithList()
-        {
-            var defaultTestObject = CreateTestObject(true);
-            defaultTestObject.ChildList = new List<TestRESTObject>() { CreateTestObject(true), CreateTestObject(true) };
-            var restObject = SerializeAndParseRESTObject(defaultTestObject);
-            var convertedTestObject = restObject.ExplicitObject;
-            AssertValidValuesForTestClass(convertedTestObject, false, true, false, true);
-        }
-        [TestMethod]
-        public void TestObjectWithListAndArray()
-        {
-            var defaultTestObject = CreateTestObject(false);
-            defaultTestObject.ChildArray = new TestRESTObject[] { CreateTestObject(false), CreateTestObject(false) };
-            defaultTestObject.ChildList = new List<TestRESTObject>() { CreateTestObject(false), CreateTestObject(false) };
-            var restObject = SerializeAndParseRESTObject(defaultTestObject);
-            var convertedTestObject = restObject.ExplicitObject;
-            AssertValidValuesForTestClass(convertedTestObject, true, true, false, false);
-        }
-        private static TestRESTObject CreateTestObject(bool populateNulls)
+        public static TestRESTObject CreateTestObject(bool populateNulls)
         {
             var testObj = new TestRESTObject();
+            testObj.ID = ++_lastId;
             testObj.TestStringValue = TEST_STRING;
             testObj.TestBoolValue = TEST_BOOL;
             testObj.TestIntValue = TEST_INT;
@@ -122,7 +81,7 @@ namespace DotNetRESTUnitTest
             }
             return testObj;
         }
-        private static RESTObject<TestRESTObject> SerializeAndParseRESTObject(TestRESTObject testObject)
+        public static RESTObject<TestRESTObject> SerializeAndParseRESTObject(TestRESTObject testObject)
         {
             var json = JsonConvert.SerializeObject(testObject);
             var restObject = new RESTObject<TestRESTObject>(json);
