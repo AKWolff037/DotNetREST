@@ -20,23 +20,23 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DotNetREST
+namespace DotNetRest
 {
-    public class RESTParameter
+    public class RestParameter
     {
         public string Name { get; set; }
         public object Value { get; set; }
-        public RESTParameterMethod Method { get; set; }
+        public RestParameterMethod Method { get; set; }
         public Encoding StringEncoder { get; private set; }
-        public RESTParameter(string name, object value, RESTParameterMethod method)
+        public RestParameter(string name, object value, RestParameterMethod method)
         {
             Init(name, value, method, Encoding.UTF8);
         }
-        public RESTParameter(string name, object value)
+        public RestParameter(string name, object value)
         {
-            Init(name, value, RESTParameterMethod.QUERY_STRING, Encoding.UTF8);
+            Init(name, value, RestParameterMethod.QueryString, Encoding.UTF8);
         }
-        private void Init(string name, object value, RESTParameterMethod method, Encoding encoder)
+        private void Init(string name, object value, RestParameterMethod method, Encoding encoder)
         {
             Name = name;
             Value = value;
@@ -44,10 +44,10 @@ namespace DotNetREST
             StringEncoder = encoder;
         }
     }
-    public enum RESTParameterMethod
+    public enum RestParameterMethod
     {
-        QUERY_STRING,
-        REQUEST_HEADER,
-        REQUEST_STREAM
+        QueryString,
+        RequestHeader,
+        RequestStream
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using DotNetREST;
+using DotNetRest;
 
 namespace DotNetRESTUnitTest.Tests
 {
@@ -39,12 +39,12 @@ namespace DotNetRESTUnitTest.Tests
             var request = TestRESTRequestResponse.CreateTestHttpRequest(TestRESTRequestResponse.CreateTestHttpResponse(json));
             request.Method = "GET";
             Assert.IsNotNull(request);
-            var testRequest = new RESTWebRequest(request);
+            var testRequest = new RestWebRequest(request);
             Assert.IsNotNull(testRequest);
-            var testResponse = testRequest.GetRESTResponse();
+            var testResponse = testRequest.GetRestResponse();
             Assert.IsNotNull(testResponse);
 
-            var testObject = new RESTObject<TestRESTObject>(testResponse);
+            var testObject = new RestObject<TestRESTObject>(testResponse);
             Assert.IsNotNull(testObject);
             var testExplicit = testObject.ExplicitObject;
             Assert.IsNotNull(testExplicit);
@@ -91,12 +91,12 @@ namespace DotNetRESTUnitTest.Tests
             var request = TestRESTRequestResponse.CreateTestHttpRequest(TestRESTRequestResponse.CreateTestHttpResponse(json));
             request.Method = "GET";
             Assert.IsNotNull(request);
-            var testRequest = new RESTWebRequest(request);
+            var testRequest = new RestWebRequest(request);
             Assert.IsNotNull(testRequest);
-            var testResponse = testRequest.GetRESTResponse();
+            var testResponse = testRequest.GetRestResponse();
             Assert.IsNotNull(testResponse);
 
-            var testObject = new RESTObject<TestRESTObject>(testResponse);
+            var testObject = new RestObject<TestRESTObject>(testResponse);
             Assert.IsNotNull(testObject);
             var testExplicit = testObject.ExplicitObject;
             Assert.IsNotNull(testExplicit);

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
-using DotNetREST;
+using DotNetRest;
 
 namespace DotNetRESTUnitTest
 {
@@ -81,10 +81,10 @@ namespace DotNetRESTUnitTest
             }
             return testObj;
         }
-        public static RESTObject<TestRESTObject> SerializeAndParseRESTObject(TestRESTObject testObject)
+        public static RestObject<TestRESTObject> SerializeAndParseRESTObject(TestRESTObject testObject)
         {
             var json = JsonConvert.SerializeObject(testObject);
-            var restObject = new RESTObject<TestRESTObject>(json);
+            var restObject = new RestObject<TestRESTObject>(json);
             //Check to make sure that serialization was correct
             Assert.IsTrue(restObject.ExplicitObject != null, "Explicit Object was not correctly populated");
             return restObject;

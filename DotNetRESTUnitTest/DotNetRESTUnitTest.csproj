@@ -25,6 +25,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -33,6 +34,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json, Version=7.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -77,9 +79,9 @@
     <Compile Include="Tests\UnitTestRESTObject.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DotNetREST\DotNetREST.csproj">
+    <ProjectReference Include="..\DotNetREST\DotNetRest.csproj">
       <Project>{534ff893-8a49-4674-bb6c-e3c310ef56d1}</Project>
-      <Name>DotNetREST</Name>
+      <Name>DotNetRest</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetREST", "DotNetREST\DotNetREST.csproj", "{534FF893-8A49-4674-BB6C-E3C310EF56D1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetRest", "DotNetREST\DotNetRest.csproj", "{534FF893-8A49-4674-BB6C-E3C310EF56D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetRESTUnitTest", "DotNetRESTUnitTest\DotNetRESTUnitTest.csproj", "{ED75B166-872C-4CFA-A909-2D2987678454}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetRestUnitTest", "DotNetRESTUnitTest\DotNetRestUnitTest.csproj", "{ED75B166-872C-4CFA-A909-2D2987678454}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

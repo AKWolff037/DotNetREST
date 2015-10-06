@@ -7,7 +7,7 @@
     <ProjectGuid>{534FF893-8A49-4674-BB6C-E3C310EF56D1}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DotNetREST</RootNamespace>
+    <RootNamespace>DotNetRest</RootNamespace>
     <AssemblyName>DotNetREST</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -20,6 +20,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -28,6 +29,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json, Version=7.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -53,11 +55,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="RESTObject.cs" />
-    <Compile Include="RESTParameter.cs" />
-    <Compile Include="RESTWebRequest.cs" />
+    <Compile Include="RestObject.cs" />
+    <Compile Include="RestParameter.cs" />
+    <Compile Include="RestWebRequest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RESTWebResponse.cs" />
+    <Compile Include="RestWebResponse.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="LICENSE" />

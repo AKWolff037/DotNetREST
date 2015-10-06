@@ -24,7 +24,8 @@ using System.Reflection;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.Dynamic;
-namespace DotNetREST
+using System.Globalization;
+namespace DotNetRest
 {
     /**
      * To use, call the default constructor with the type that you wish to convert the JSON to
@@ -38,7 +39,7 @@ namespace DotNetREST
      * 
      * .Net decimal values are only supported if they fall between double.MIN_VALUE and double.MAX_VALUE
      */ 
-    public class RESTObject<T> where T : class, new()
+    public class RestObject<T> where T : class, new()
     {
         private ExpandoObject _dynamic;
         private ICollection<ExpandoObject> _dynamicList;
@@ -51,7 +52,7 @@ namespace DotNetREST
         public T ExplicitObject { get { return _explicit; } }
         public ICollection<T> ExplicitCollection { get { return _explicitList; } }
         public ICollection<ExpandoObject> DynamicCollection { get { return _dynamicList; } }
-        protected RESTObject()
+        protected RestObject()
         {
             InitRestObject();
         }
@@ -60,25 +61,32 @@ namespace DotNetREST
             _dynamicList = new List<ExpandoObject>();
             _explicitList = new List<T>();
         }
-        protected RESTObject(ExpandoObject expando)
+        protected RestObject(ExpandoObject expando)
         {
             ParseDynamic(expando);
         }
-        public RESTObject(string json)
+        public RestObject(string json)
         {
             InitRestObject();
             ParseJson(json);
         }
-        public RESTObject(RESTWebResponse response)
+        public RestObject(RestWebResponse response)
         {
             InitRestObject();
             //Get the JSON from a Web Response and parse it into an ExpandoObject and typed T object
-            var responseString = response.ResponseStreamAsString;
-            ParseJson(responseString);
+            if (response != null)
+            {
+                var responseString = response.ResponseStreamAsString;
+                ParseJson(responseString);
+            }
+            else
+            {
+                throw new InvalidOperationException("Cannot initialize RestObject with a null RestWebResponse");
+            }
         }
         private void ParseJson(string json)
         {
-            var isCollection = json.StartsWith("[");
+            var isCollection = json.StartsWith("[", StringComparison.CurrentCulture);
             if(!isCollection)
             {
                 var responseJson = Newtonsoft.Json.JsonConvert.DeserializeObject<ExpandoObject>(json);
@@ -100,38 +108,39 @@ namespace DotNetREST
         {
             //Parse when given an ExpandoObject
             T output = default(T);
-            var dict = input as IDictionary<string, object>;
-            ParseDictionary<T>(dict, out output);
+            var dictionary = input as IDictionary<string, object>;
+            output = ParseDictionary<T>(dictionary);
             return output;
         }
-        protected static void ParseDictionary(IDictionary<string, object> Dict, out object Target, Type explicitType)
+        private static object ParseDictionary(IDictionary<string, object> inputDictionary, Type explicitType)
         {
-            if(Dict == null)
+            object targetObject = default(object);
+            if(inputDictionary == null)
             {
                 throw new InvalidOperationException("Dictionary was null, cannot parse a null dictionary");
             }
             if (explicitType.IsArray)
             {
-                var length = Dict.Keys.Count();
-                Target = (Array)Activator.CreateInstance(explicitType, new object[] { length });
+                var length = inputDictionary.Keys.Count();
+                targetObject = (Array)Activator.CreateInstance(explicitType, new object[] { length });
             }
             else
             {
-                Target = Activator.CreateInstance(explicitType);
+                targetObject = Activator.CreateInstance(explicitType);
             }
-            foreach (var property in Target.GetType().GetProperties())
+            foreach (var property in targetObject.GetType().GetProperties())
             {
                 var propertyName = property.Name;
-                if (Dict.ContainsKey(propertyName) && Dict[propertyName] != null)
+                if (inputDictionary.ContainsKey(propertyName) && inputDictionary[propertyName] != null)
                 {
-                    var val = Dict[propertyName];
+                    var val = inputDictionary[propertyName];
                     var propertyVal = explicitType.GetProperty(propertyName);
                     var expectedType = property.PropertyType;
                     var valType = val.GetType();
                     if(valType == expectedType)
                     {
                         //Hurray, we matched!
-                        propertyVal.SetValue(Target, val);
+                        propertyVal.SetValue(targetObject, val);
                     }
                     else if (valType != expectedType && val is IConvertible)
                     {
@@ -140,22 +149,23 @@ namespace DotNetREST
                         if((valType == typeof(long) || valType == typeof(long?))
                             && (safeType == typeof(DateTime) || safeType == typeof(DateTime?)))
                         {
-                            var longValue = (long)Convert.ChangeType(val, typeof(long));
+                            var longValue = (long)Convert.ChangeType(val, typeof(long), CultureInfo.InvariantCulture);
                             var dateValue = UNIX_EPOCH.AddSeconds(longValue);
                             val = dateValue;
                         }
                         //Convert if possible
-                        var explicitVal = (val == null ? null : Convert.ChangeType(val, safeType));
-                        propertyVal.SetValue(Target, explicitVal, null);
+                        var explicitVal = (val == null ? null : Convert.ChangeType(val, safeType, CultureInfo.InvariantCulture));
+                        propertyVal.SetValue(targetObject, explicitVal, null);
                         
                     }
                     else if (val is IDictionary<string, object>)
                     {
                         //Parse non-simple object
                         var propType = propertyVal.PropertyType;
+                        var valAsDictionary = val as IDictionary<string, object>;
                         object explicitVal = Activator.CreateInstance(propType);
-                        ParseDictionary(val as IDictionary<string, object>, out explicitVal, propType);
-                        propertyVal.SetValue(Target, explicitVal);
+                        explicitVal = ParseDictionary(valAsDictionary, propType);
+                        propertyVal.SetValue(targetObject, explicitVal);
                     }
                     else if (val is IList)
                     {
@@ -182,8 +192,7 @@ namespace DotNetREST
                         var explicitList = (IList)Activator.CreateInstance(typedList);
                         foreach(var element in val as IList<object>)
                         {
-                            object explicitElement;
-                            ParseDictionary(element as IDictionary<string, object>, out explicitElement, elementType);
+                            var explicitElement = ParseDictionary(element as IDictionary<string, object>, elementType);
                             explicitList.Add(explicitElement);
                         }
                         if(property.PropertyType.IsArray)
@@ -192,28 +201,29 @@ namespace DotNetREST
                             var arrayType = elementType.MakeArrayType();
                             var array = (Array)Activator.CreateInstance(arrayType, new object[] { explicitList.Count });
                             explicitList.CopyTo(array, 0);
-                            propertyVal.SetValue(Target, array);
+                            propertyVal.SetValue(targetObject, array);
                         }
                         else
                         {
-                            propertyVal.SetValue(Target, explicitList);
+                            propertyVal.SetValue(targetObject, explicitList);
                         }
                     }
                     else
                     {
                         //Attempt to set it - will error if not compatible and all other checks are bypassed
-                        propertyVal.SetValue(Target, val);
+                        propertyVal.SetValue(targetObject, val);
                     }
                 }
             }
+            return targetObject;
         }    
-        protected static void ParseDictionary<K>(IDictionary<string, object> Dict, out K Target) where K : class, new()
+        private static K ParseDictionary<K>(IDictionary<string, object> inputDictionary) where K : class, new()
         {
-            Target = new K();
-            var explicitType = Target.GetType();
-            var outObject = new object();
-            ParseDictionary(Dict, out outObject, explicitType);
-            Target = outObject as K;
+            var output = new K();
+            var explicitType = output.GetType();
+            var typedObject = ParseDictionary(inputDictionary, explicitType);
+            output = typedObject as K;
+            return output;
         }
     }
 }

@@ -21,32 +21,40 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net;
 using System.IO;
-namespace DotNetREST
+namespace DotNetRest
 {
-    public class RESTWebResponse
+    public class RestWebResponse
     {
         private IResponse _baseResponse;
         public IResponse Base
         {
             get { return _baseResponse; }
         }
-        private RESTWebResponse(IResponse response)
+        private RestWebResponse(IResponse response)
         {
             _baseResponse = response;
         }
-        public RESTWebResponse(IRequest request)
+        public RestWebResponse(IRequest request)
         {
+            if(request == null)
+            {
+                throw new InvalidOperationException("Cannot create an instance of RestWebResponse with a null request");
+            }
             _baseResponse = request.GetResponse();
         }
-        public static RESTWebResponse GetResponse(IRequest request)
+        public static RestWebResponse GetResponse(IRequest request)
         {
+            if (request == null)
+            {
+                throw new InvalidOperationException("Cannot create an instance of RestWebResponse with a null request");
+            }
             var response = request.GetResponse();
-            return new RESTWebResponse(response);
+            return new RestWebResponse(response);
         }
-        public static async Task<RESTWebResponse> GetResponseAsync(IRequest request)
+        public static async Task<RestWebResponse> GetResponseAsync(IRequest request)
         {
             var response = await request.GetResponseAsync();
-            return new RESTWebResponse(response);
+            return new RestWebResponse(response);
         }
         public string ResponseStreamAsString
         {

@@ -21,45 +21,46 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net;
 using System.IO;
-namespace DotNetREST
+using System.Globalization;
+namespace DotNetRest
 {
-    public class RESTWebRequest
+    public class RestWebRequest
     {
-        public ICollection<RESTParameter> Parameters { get; set; }
+        public ICollection<RestParameter> Parameters { get; private set; }
 
         public IRequest Base
         {
             get { return _baseRequest; }
         }
         private IRequest _baseRequest;
-        private RESTWebRequest()
+        private RestWebRequest()
         {
-            _baseRequest = new RESTRequest(HttpWebRequest.Create("http://localhost:8080"));
+            _baseRequest = new RestRequest(HttpWebRequest.Create("http://localhost:8080"));
             InitRequest();
         }
-        public RESTWebRequest(IRequest request)
+        public RestWebRequest(IRequest request)
         {
             _baseRequest = request;
             InitRequest();
         }
-        public RESTWebRequest(Uri uri, HttpVerb verb)
+        public RestWebRequest(Uri uri, HttpVerb verb)
         {
-            _baseRequest = new RESTRequest(HttpWebRequest.Create(uri));
+            _baseRequest = new RestRequest(HttpWebRequest.Create(uri));
             _baseRequest.Method = verb.ToString();
             InitRequest();
         }
 
         private void InitRequest()
         {
-            Parameters = new List<RESTParameter>();
+            Parameters = new List<RestParameter>();
         }
-        public RESTWebResponse GetRESTResponse()
+        public RestWebResponse GetRestResponse()
         {
-            if (_baseRequest.Method.ToUpper() != "GET")
+            if (_baseRequest.Method.ToUpper(CultureInfo.InvariantCulture) != "GET")
             {
                 AddParameters();
             }
-            var restResponse = new RESTWebResponse(_baseRequest);
+            var restResponse = new RestWebResponse(_baseRequest);
             return restResponse;
         }
         private void AddParameters()
@@ -73,15 +74,15 @@ namespace DotNetREST
             {                
                 switch (restParameter.Method)
                 {
-                    case RESTParameterMethod.REQUEST_STREAM:
+                    case RestParameterMethod.RequestStream:
                         var parameterBytes = restParameter.StringEncoder.GetBytes(restParameter.Value.ToString());
                         requestStream.Write(parameterBytes, currentPosition, parameterBytes.Length);
                         currentPosition += parameterBytes.Length;
                         break;
-                    case RESTParameterMethod.REQUEST_HEADER:
+                    case RestParameterMethod.RequestHeader:
                         _baseRequest.Headers.Add(restParameter.Name, restParameter.Value.ToString());
                         break;
-                    case RESTParameterMethod.QUERY_STRING:
+                    case RestParameterMethod.QueryString:
                     default:                                                
                         if (isFirstQueryParam)
                         {
@@ -100,31 +101,26 @@ namespace DotNetREST
             {
                 var newUri = _baseRequest.RequestUri + parameterString;
                 var originalRequest = _baseRequest;
-                _baseRequest = new RESTRequest(HttpWebRequest.Create(newUri), originalRequest);
+                _baseRequest = new RestRequest(HttpWebRequest.Create(newUri), originalRequest);
             }
             _baseRequest.ContentType = "application/json";
         }
     }
-    public enum ParameterType
-    {
-        URI,
-        HEADER
-    }
     public enum HttpVerb
     {
-        GET,
-        PUT,
-        POST,
-        DELETE
+        Get,
+        Put,
+        Post,
+        Delete
     }
-    public class RESTRequest : IRequest
+    public class RestRequest : IRequest
     {
         private WebRequest _baseRequest;
-        public RESTRequest(WebRequest request)
+        public RestRequest(WebRequest request)
         {
             _baseRequest = request;
         }
-        public RESTRequest(WebRequest newRequest, IRequest oldRequest)
+        internal RestRequest(WebRequest newRequest, IRequest oldRequest)
         {
             //Probably really slow, but makes sure we get the same 
             foreach(var property in oldRequest.GetType().GetProperties())
