@@ -27,7 +27,7 @@ public void Main()
   var apiKey = "H3LL0_W0RLD";
   var request = new RESTWebRequest(uri, verb);
   //Add any header/parameter information into the request
-  request.Parameters.add("apikey", apiKey);
+  request.Parameters.add(new RESTParameter("apikey", apiKey, RESTParameterMethod.QUERY_STRING));
   var response = request.GetRESTResponse();
   var myRESTFoo = new RESTObject<Foo>(response);
   // Also available, myRESTFoo = await RESTObject<Foo>.GetRESTObjectAsync(response);
