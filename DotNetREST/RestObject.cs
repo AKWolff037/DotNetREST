@@ -25,6 +25,7 @@ using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.Dynamic;
 using System.Globalization;
+using System.Diagnostics;
 namespace DotNetRest
 {
     /**
@@ -52,7 +53,7 @@ namespace DotNetRest
         public T ExplicitObject { get { return _explicit; } }
         public ICollection<T> ExplicitCollection { get { return _explicitList; } }
         public ICollection<ExpandoObject> DynamicCollection { get { return _dynamicList; } }
-        protected RestObject()
+        internal RestObject()
         {
             InitRestObject();
         }
@@ -61,7 +62,7 @@ namespace DotNetRest
             _dynamicList = new List<ExpandoObject>();
             _explicitList = new List<T>();
         }
-        protected RestObject(ExpandoObject expando)
+        internal RestObject(ExpandoObject expando)
         {
             ParseDynamic(expando);
         }
@@ -81,7 +82,7 @@ namespace DotNetRest
             }
             else
             {
-                throw new InvalidOperationException("Cannot initialize RestObject with a null RestWebResponse");
+                throw new ArgumentNullException("response", "Cannot initialize RestObject with a null RestWebResponse");
             }
         }
         private void ParseJson(string json)
@@ -117,7 +118,7 @@ namespace DotNetRest
             object targetObject = default(object);
             if(inputDictionary == null)
             {
-                throw new InvalidOperationException("Dictionary was null, cannot parse a null dictionary");
+                throw new ArgumentNullException("inputDictionary", "inputDictionary was null, cannot parse a null dictionary");
             }
             if (explicitType.IsArray)
             {
@@ -184,6 +185,9 @@ namespace DotNetRest
                         else
                         {
                             //Not sure how we'd get here if we're neither an array nor generic, but we can't really do much
+                            #if DEBUG
+                            Debug.Assert(false);
+                            #endif
                             continue;
                         }
                         //Create the necessary List implementation that we need

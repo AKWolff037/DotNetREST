@@ -38,7 +38,7 @@ namespace DotNetRest
         {
             if(request == null)
             {
-                throw new InvalidOperationException("Cannot create an instance of RestWebResponse with a null request");
+                throw new ArgumentNullException("request", "Cannot create an instance of RestWebResponse with a null request");
             }
             _baseResponse = request.GetResponse();
         }
@@ -46,7 +46,7 @@ namespace DotNetRest
         {
             if (request == null)
             {
-                throw new InvalidOperationException("Cannot create an instance of RestWebResponse with a null request");
+                throw new ArgumentNullException("request", "Cannot create an instance of RestWebResponse with a null request");
             }
             var response = request.GetResponse();
             return new RestWebResponse(response);
