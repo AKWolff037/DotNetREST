@@ -132,9 +132,9 @@ namespace DotNetRest
             foreach (var property in targetObject.GetType().GetProperties())
             {
                 var propertyName = property.Name;
-                if (inputDictionary.ContainsKey(propertyName) && inputDictionary[propertyName] != null)
+                object val;
+                if (inputDictionary.TryGetValue(propertyName, out val) && val != null)
                 {
-                    var val = inputDictionary[propertyName];
                     var propertyVal = explicitType.GetProperty(propertyName);
                     var expectedType = property.PropertyType;
                     var valType = val.GetType();
@@ -143,7 +143,7 @@ namespace DotNetRest
                         //Hurray, we matched!
                         propertyVal.SetValue(targetObject, val);
                     }
-                    else if (valType != expectedType && val is IConvertible)
+                    else if (val is IConvertible)
                     {
                         Type safeType = Nullable.GetUnderlyingType(expectedType) ?? expectedType;
                         //Special Case - INT64 to DATETIME Conversion (UNIX Time)
@@ -151,8 +151,7 @@ namespace DotNetRest
                             && (safeType == typeof(DateTime) || safeType == typeof(DateTime?)))
                         {
                             var longValue = (long)Convert.ChangeType(val, typeof(long), CultureInfo.InvariantCulture);
-                            var dateValue = UNIX_EPOCH.AddSeconds(longValue);
-                            val = dateValue;
+                            val = UNIX_EPOCH.AddSeconds(longValue);
                         }
                         //Convert if possible
                         var explicitVal = (val == null ? null : Convert.ChangeType(val, safeType, CultureInfo.InvariantCulture));
@@ -161,48 +160,29 @@ namespace DotNetRest
                     }
                     else if (val is IDictionary<string, object>)
                     {
-                        //Parse non-simple object
-                        var propType = propertyVal.PropertyType;
+                        //Parse non-simple object                        
                         var valAsDictionary = val as IDictionary<string, object>;
-                        object explicitVal = Activator.CreateInstance(propType);
-                        explicitVal = ParseDictionary(valAsDictionary, propType);
+                        object explicitVal = Activator.CreateInstance(propertyVal.PropertyType);
+                        explicitVal = ParseDictionary(valAsDictionary, propertyVal.PropertyType);
                         propertyVal.SetValue(targetObject, explicitVal);
                     }
                     else if (val is IList)
                     {
                         //Parse list/enumeration/array
-                        Type elementType;
-                        if (expectedType.IsArray)
+                        if (!expectedType.IsArray && !expectedType.IsGenericType)
                         {
-                            //Array type is explicitly included with GetElementType
-                            elementType = expectedType.GetElementType();
-                        }
-                        else if (expectedType.IsGenericType)
-                        {
-                            //Get List type by inspecting generic argument
-                            elementType = expectedType.GetGenericArguments()[0];
-                        }
-                        else
-                        {
-                            //Not sure how we'd get here if we're neither an array nor generic, but we can't really do much
-                            #if DEBUG
+#if DEBUG
                             Debug.Assert(false);
-                            #endif
+#endif
                             continue;
+                            //Array type is explicitly included with GetElementType
                         }
+                        var explicitList = ParseAsList(val, expectedType, property);
                         //Create the necessary List implementation that we need
-                        var listType = typeof(List<>);
-                        var typedList = listType.MakeGenericType(elementType);
-                        var explicitList = (IList)Activator.CreateInstance(typedList);
-                        foreach(var element in val as IList<object>)
-                        {
-                            var explicitElement = ParseDictionary(element as IDictionary<string, object>, elementType);
-                            explicitList.Add(explicitElement);
-                        }
-                        if(property.PropertyType.IsArray)
+                        if(expectedType.IsArray)
                         {
                             //Convert from list to array if necessary
-                            var arrayType = elementType.MakeArrayType();
+                            var arrayType = expectedType.GetElementType().MakeArrayType();
                             var array = (Array)Activator.CreateInstance(arrayType, new object[] { explicitList.Count });
                             explicitList.CopyTo(array, 0);
                             propertyVal.SetValue(targetObject, array);
@@ -221,6 +201,30 @@ namespace DotNetRest
             }
             return targetObject;
         }    
+        private static IList ParseAsList(object inputValue, Type expectedType, PropertyInfo property)
+        {
+            //Parse list/enumeration/array
+            Type elementType = null;
+            if (expectedType.IsArray)
+            {
+                //Array type is explicitly included with GetElementType
+                elementType = expectedType.GetElementType();
+            }
+            else if (expectedType.IsGenericType)
+            {
+                //Get List type by inspecting generic argument
+                elementType = expectedType.GetGenericArguments()[0];
+            }
+            //Create the necessary List implementation that we need
+            var listType = typeof(List<>).MakeGenericType(elementType);
+            var explicitList = (IList)Activator.CreateInstance(listType);
+            foreach (var element in inputValue as IList<object>)
+            {
+                var explicitElement = ParseDictionary(element as IDictionary<string, object>, elementType);
+                explicitList.Add(explicitElement);
+            }
+            return explicitList;
+        }
         private static K ParseDictionary<K>(IDictionary<string, object> inputDictionary) where K : class, new()
         {
             var output = new K();
