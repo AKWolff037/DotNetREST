@@ -1,5 +1,5 @@
-# DotNetREST
-.Net library for easy REST calls with JSON parsing
+# DotNetRest
+.Net library for easy RESTful calls with JSON parsing
 
 # Limitations/Warnings
 * The **decimal** type is not supported for values outside of the range of **double.MIN_VALUE** and **double.MAX_VALUE**
@@ -25,13 +25,13 @@ public void Main()
   var uri = new Uri("http://localhost:8080/foo/1");
   var verb = HttpVerbs.GET;
   var apiKey = "H3LL0_W0RLD";
-  var request = new RESTWebRequest(uri, verb);
+  var request = new RestWebRequest(uri, verb);
   //Add any header/parameter information into the request
-  request.Parameters.add(new RESTParameter("apikey", apiKey, RESTParameterMethod.QUERY_STRING));
-  var response = request.GetRESTResponse();
-  var myRESTFoo = new RESTObject<Foo>(response);
-  // Also available, myRESTFoo = await RESTObject<Foo>.GetRESTObjectAsync(response);
-  var myFoo = myRESTFoo.ExplicitObject;
+  request.Parameters.add(new RestParameter("apikey", apiKey, RestParameterMethod.QUERY_STRING));
+  var response = request.GetRestResponse();
+  var myRestFoo = new RestObject<Foo>(response);
+  // Also available, myRestFoo = await RestObject<Foo>.GetRestObjectAsync(response);
+  var myFoo = myRestFoo.ExplicitObject;
   //Enjoy using myFoo as a statically typed object elsewhere
   ...
 }
